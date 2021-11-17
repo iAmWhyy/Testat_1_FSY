@@ -1,3 +1,5 @@
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.*;
 
 class Program {
@@ -15,32 +17,91 @@ class ArrayInputCreator {
 
     private ArrayInputCreator() {}
 
-    public static int[] createArrayWithRndVals(int arrLength) //absolut randomized
+    private static Random rnd = new Random();
+
+    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr) //absolut randomized, double values possible
     {
-        Random rnd = new Random();
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = rnd.nextInt(arrLength);
+            array[i] = rnd.nextInt(maxNumberInArr);
         }
         return array;
     }
 
-    //prozentualer Anteil identischer Elemente
-    //Grad der Vorsortierung: entweder vollständig sortiert 1...2....3
-    //vollständig randomized
-    //Rückwärtssortierung 3...2..1
-    //bis auf 1 Element sortiert
-
-    //Länge 10, 1000, 10^5
-
-    //Testarray + Laufzeitausgabe
-    //Testatarray Generator
-
-    public static int pickRndNum(int[] array)
+    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr, double relativeProportionOfIdenticalElements)
     {
-        Random rnd = new Random();
-        int rndIndex = rnd.nextInt(array.length);
-        return array[rndIndex];
+        if (relativeProportionOfIdenticalElements > 1 ||
+                relativeProportionOfIdenticalElements < 0){
+            throw new IllegalArgumentException("value of relativeProportionOfIdenticalElements has to be between 0 and 1");
+        }
+        if (maxNumberInArr < 1){
+            throw new IllegalArgumentException("value of maxNumberInArr has to be greater than 0");
+        }
+        int[] array = new int[arrLength];
+        long numberOfIdenticalElementsInArr = Math.round(arrLength*relativeProportionOfIdenticalElements);
+        var identicalElement = rnd.nextInt(maxNumberInArr);
+        for (int i = 0; i < array.length; i++) //fill array with suitable values
+        {
+            if (numberOfIdenticalElementsInArr > 0){
+                array[i] = identicalElement;
+                numberOfIdenticalElementsInArr--;
+            }
+            else{
+                do {
+                    array[i] = rnd.nextInt(maxNumberInArr);
+                }while (array[i] == identicalElement);
+            }
+        }
+        shuffleArray(array);
+        return array;
+    }
+
+    private static void shuffleArray(int[] ar)
+    {
+        for (int i = ar.length - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            // Simple swap
+            int a = ar[index];
+            ar[index] = ar[i];
+            ar[i] = a;
+        }
+    }
+
+    public static int[] createArraySortedAscending(int arrLength)
+    {
+        int[] array = new int[arrLength];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = i;
+        }
+        return array;
+    }
+
+    public static int[] createArraySortedDescending(int arrLength)
+    {
+        int[] array = new int[arrLength];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = array.length - 1 - i;
+        }
+        return array;
+    }
+
+    public static int[] createArraySortedExceptOneSwap(int arrLength)
+    {
+        int[] sortedArray = createArraySortedAscending(arrLength);
+        int pos1 = rnd.nextInt(arrLength);
+        int pos2;
+        do {
+            pos2 = rnd.nextInt(arrLength);
+        }while (pos1 == pos2);
+        swap(sortedArray, pos1, pos2);
+        return sortedArray;
+    }
+
+    private static void swap(int[] arr, int i, int j) {
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
     }
 }
 
@@ -88,7 +149,7 @@ class SortAlgorithmsComparer {
     private long[] getRuntimesOfAlgorithm(int lengthOfArray, SortAlgorithm sortAlgo, int numberOfRuns) {
         long[] runtimesOfAlgorithm = new long[numberOfRuns];
         for (int i = 0; i < numberOfRuns; i++) {
-            var rndArray = ArrayInputCreator.createArrayWithRndVals(lengthOfArray);
+            var rndArray = ArrayInputCreator.createArrayWithRndVals(lengthOfArray, lengthOfArray);
             var maxIntInArr = Arrays.stream(rndArray).max().getAsInt();
             var sw = new Stopwatch(true);
             sortAlgo.sort(rndArray, maxIntInArr);
