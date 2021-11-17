@@ -3,7 +3,7 @@ import java.util.*;
 class Program {
     public static void main(String[] args) {
         var temp = new SortAlgorithmsComparer();
-        temp.compareAllAvailableSortAlgorithms(100, 100);
+        temp.compareAllAvailableSortAlgorithms(100);
     }
 }
 
@@ -58,58 +58,73 @@ class SortAlgorithmFactory {
 }
 
 class SortAlgorithmsComparer {
-    public void compareAllAvailableSortAlgorithms(int lengthOfArray, int numberOfRuns){
+    public void compareAllAvailableSortAlgorithms(int lengthOfArray){
         SortAlgorithmFactory sortAlgorithmFactory = new SortAlgorithmFactory();
         SortAlgorithm[] listOfAvailableSortAlgorithms = sortAlgorithmFactory.getAllSortAlgorithms();
-        ArrayList<SortAlgorithmAndRuntime> listOfSortAlgorithmsWithRuntime = new ArrayList<>();
-        //hier könnte auch ein Array von Int-Arrays(int[]) erstellt werden, sodass beim Sortieren immer die gleichen verwendet werden
-        for(var sortAlgo : listOfAvailableSortAlgorithms){
-            long[] runtimesOfAlgorithm = getRuntimesOfAlgorithm(lengthOfArray, sortAlgo, numberOfRuns);
-            long maxTime = Arrays.stream(runtimesOfAlgorithm).max().getAsLong();
-            long minTime = Arrays.stream(runtimesOfAlgorithm).min().getAsLong();
-            double avgTime = Arrays.stream(runtimesOfAlgorithm).average().getAsDouble();
-            SortAlgorithmAndRuntime sortAlgorithmAndRuntime =
-                    new SortAlgorithmAndRuntime(sortAlgo.getClass().getSimpleName(), maxTime, minTime, avgTime);
-            listOfSortAlgorithmsWithRuntime.add(sortAlgorithmAndRuntime);
-        }
 
-        printResultsOfSortAlgorithms(listOfSortAlgorithmsWithRuntime);
+        ArrayAndSortAlgorithmsWithRuntime runtimesOfAlgorithms = getRuntimesOfAlgorithm(lengthOfArray, listOfAvailableSortAlgorithms);
+
+        System.out.println(runtimesOfAlgorithms);
     }
 
-    private void printResultsOfSortAlgorithms(ArrayList<SortAlgorithmAndRuntime> listOfSortAlgorithmsWithRuntime) {
-        for (var sortAlgorithmWithRuntime : listOfSortAlgorithmsWithRuntime){
-            System.out.println(sortAlgorithmWithRuntime.name);
-            System.out.println("Min Time: " + sortAlgorithmWithRuntime.shortestTime + "ns");
-            System.out.println("Max Time: " + sortAlgorithmWithRuntime.longestTime + "ns");
-            System.out.println("Avg Time: " + sortAlgorithmWithRuntime.avgTime + "ns\n");
-        }
-    }
+    private ArrayAndSortAlgorithmsWithRuntime getRuntimesOfAlgorithm(int lengthOfArray, SortAlgorithm[] sortAlgos) {
+        SortAlgorithmAndRuntime[] sortAlgorithmAndRuntimes = new SortAlgorithmAndRuntime[sortAlgos.length];
 
-    private long[] getRuntimesOfAlgorithm(int lengthOfArray, SortAlgorithm sortAlgo, int numberOfRuns) {
-        long[] runtimesOfAlgorithm = new long[numberOfRuns];
-        for (int i = 0; i < numberOfRuns; i++) {
-            var rndArray = ArrayInputCreator.createArrayWithRndVals(lengthOfArray);
-            var maxIntInArr = Arrays.stream(rndArray).max().getAsInt();
+        // Array generieren
+        var arrayToSort = ArrayInputCreator.createArrayWithRndVals(lengthOfArray); // anderer Branch
+        var maxIntInArr = Arrays.stream(arrayToSort).max().getAsInt(); // Kann man das auch irgendwie mit der Create-Methode übergeben?
+
+        for (int i = 0; i < sortAlgos.length; i++) {
+            var array = arrayToSort.clone();
             var sw = new Stopwatch(true);
-            sortAlgo.sort(rndArray, maxIntInArr);
-            runtimesOfAlgorithm[i] = sw.getElapsedTimeNano();
+            sortAlgos[i].sort(array, maxIntInArr);
+            long time = sw.getElapsedTimeNano();
+            String algoName = sortAlgos[i].getClass().getSimpleName();
+            sortAlgorithmAndRuntimes[i] = new SortAlgorithmAndRuntime(algoName, time);
         }
-        return runtimesOfAlgorithm;
+
+        return new ArrayAndSortAlgorithmsWithRuntime("ArrayDescription", arrayToSort, sortAlgorithmAndRuntimes);
     }
 }
 
 class SortAlgorithmAndRuntime {
-    public String name;
-    public long longestTime;
-    public long shortestTime;
-    public double avgTime;
+    public String algorithmName;
+    public long time;
 
-    public SortAlgorithmAndRuntime(String name, long longestTime, long shortestTime, double avgTime){
-        this.name = name;
-        this.longestTime = longestTime;
-        this.shortestTime = shortestTime;
-        this.avgTime = avgTime;
+    public SortAlgorithmAndRuntime(String algorithmName, long time){
+        this.algorithmName = algorithmName;
+        this.time = time;
     }
+
+    @Override
+    public String toString(){
+        return String.format("%s,%d,", algorithmName, time);
+    }
+}
+
+class ArrayAndSortAlgorithmsWithRuntime{
+    public String arraySpecs;
+    public int[] array;
+    public SortAlgorithmAndRuntime[] sortAlgorithmAndRuntimes;
+
+    public ArrayAndSortAlgorithmsWithRuntime(String arraySpecs, int[] array, SortAlgorithmAndRuntime[] sortAlgorithmAndRuntimes) {
+        this.arraySpecs = arraySpecs;
+        this.array = array;
+        this.sortAlgorithmAndRuntimes = sortAlgorithmAndRuntimes;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (var data : sortAlgorithmAndRuntimes){
+            stringBuilder.append(String.format("%s,%s,%s\n", arraySpecs, array.toString(), data));
+        }
+        return stringBuilder.toString();
+    }
+}
+
+class ArraySpecification {
+
 }
 
 class Stopwatch {
