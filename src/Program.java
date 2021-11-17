@@ -19,7 +19,7 @@ class ArrayInputCreator {
 
     private static Random rnd = new Random();
 
-    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr) //absolut randomized, double values possible
+    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr) //absolut randomized, duplicate values possible
     {
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
