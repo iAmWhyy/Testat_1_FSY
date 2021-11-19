@@ -166,7 +166,7 @@ class SortAlgorithmsComparator {
             var startTime = System.nanoTime();
 
             sortAlgorithms[i].sort(array, maxIntInArr);
-            double time = (System.nanoTime() - startTime)/1000.0;
+            double time = (System.nanoTime() - startTime)/1000.0; //converting runtime into microseconds
 
             sortAlgorithmAndRuntimes[i] = new SortAlgorithmAndRuntime(algoName, time);
         }
