@@ -2,7 +2,7 @@ import java.util.*;
 
 class Program {
     public static void main(String[] args) {
-        var temp = new SortAlgorithmsComparer();
+        var temp = new SortAlgorithmsComparator();
         temp.compareAllAvailableSortAlgorithms(
                 new int[]{10, 1000, 100000},
                 new int[]{10, 100000},
@@ -13,16 +13,16 @@ class Program {
 }
 
 interface SortAlgorithm {
-    public void sort(int[] arr, int maxNumberInArr);
+    void sort(int[] arr, int maxNumberInArr);
 }
 
 class ArrayInputCreator {
 
     private ArrayInputCreator() {}
 
-    private static Random rnd = new Random();
+    private static final Random rnd = new Random();
 
-    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr) //absolut randomized, duplicate values possible
+    public static int[] createArrayWithRndValues(int arrLength, int maxNumberInArr) //absolut randomized, duplicate values possible
     {
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
@@ -31,7 +31,7 @@ class ArrayInputCreator {
         return array;
     }
 
-    public static int[] createArrayWithRndVals(int arrLength, int maxNumberInArr, double relativeProportionOfIdenticalElements)
+    public static int[] createArrayWithRndValues(int arrLength, int maxNumberInArr, double relativeProportionOfIdenticalElements)
     {
         if (relativeProportionOfIdenticalElements > 1 ||
                 relativeProportionOfIdenticalElements < 0){
@@ -68,29 +68,27 @@ class ArrayInputCreator {
         }
     }
 
-    public static int[] createArraySortedAscending(int arrLength, int maxIntinArr)
+    public static int[] createArraySortedAscending(int arrLength, int maxIntInArr)
     {
-        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = (int) (i * maxInt / array.length);
+            array[i] = (int) (i * (long) maxIntInArr / array.length);
         }
         return array;
     }
 
-    public static int[] createArraySortedDescending(int arrLength, int maxIntinArr)
+    public static int[] createArraySortedDescending(int arrLength, int maxIntInArr)
     {
-        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = (int)((array.length - 1 - i) * maxInt / array.length);
+            array[i] = (int)((array.length - 1 - i) * (long) maxIntInArr / array.length);
         }
         return array;
     }
 
-    public static int[] createArraySortedExceptOneSwap(int arrLength, int maxIntinArr)
+    public static int[] createArraySortedExceptOneSwap(int arrLength, int maxIntInArr)
     {
-        int[] sortedArray = createArraySortedAscending(arrLength, maxIntinArr);
+        int[] sortedArray = createArraySortedAscending(arrLength, maxIntInArr);
         int pos1 = rnd.nextInt(arrLength);
         int pos2;
         do {
@@ -103,18 +101,16 @@ class ArrayInputCreator {
 
 class SortAlgorithmFactory {
     public SortAlgorithm[] getAllSortAlgorithms(){
-        //hier soll eine Liste mit Instanzen von jedem SortAlgorithm zurückgegeben werden
-        SortAlgorithm[] listOfSortAlgo = new SortAlgorithm[]{
+        return new SortAlgorithm[]{
                 new MergeSort(),
                 new RandomizedQuickSort(),
                 new CountingSort(),
                 new HeapSort()
         };
-        return listOfSortAlgo;
     }
 }
 
-class SortAlgorithmsComparer {
+class SortAlgorithmsComparator {
     public void compareAllAvailableSortAlgorithms(
             int[] arrayLengths,
             int[] maxIntsInArr,
@@ -124,37 +120,34 @@ class SortAlgorithmsComparer {
         SortAlgorithm[] listOfAvailableSortAlgorithms = sortAlgorithmFactory.getAllSortAlgorithms();
 
         for (int arrayLength : arrayLengths) {
-            for (int maxIntinArr : maxIntsInArr) {
+            for (int maxIntInArr : maxIntsInArr) {
                 for (var orderAndUniqueness : orderAndUniquenesses) {
-                    ArraySpecification arraySpecification = new ArraySpecification(arrayLength, maxIntinArr, orderAndUniqueness, shareOfIdenticalElements);
+                    ArraySpecification arraySpecification = new ArraySpecification(arrayLength, maxIntInArr, orderAndUniqueness, shareOfIdenticalElements);
                     int[] arrayToSort = null;
                     switch (orderAndUniqueness){
                         case SortedAscending:
-                            if (maxIntinArr <= arrayLength)
-                                arrayToSort = ArrayInputCreator.createArraySortedAscending(arrayLength, maxIntinArr);
+                            if (maxIntInArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedAscending(arrayLength, maxIntInArr);
                             break;
                         case SortedDescending:
-                            if (maxIntinArr <= arrayLength)
-                                arrayToSort = ArrayInputCreator.createArraySortedDescending(arrayLength, maxIntinArr);
+                            if (maxIntInArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedDescending(arrayLength, maxIntInArr);
                             break;
                         case AscendingOneRandomSwap:
-                            if (maxIntinArr <= arrayLength)
-                                arrayToSort = ArrayInputCreator.createArraySortedExceptOneSwap(arrayLength, maxIntinArr);
+                            if (maxIntInArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedExceptOneSwap(arrayLength, maxIntInArr);
                             break;
                         case Random:
-                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr);
+                            arrayToSort = ArrayInputCreator.createArrayWithRndValues(arrayLength, maxIntInArr);
                             break;
                         case Random_SomeElementsIdentical:
-                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr, shareOfIdenticalElements);
+                            arrayToSort = ArrayInputCreator.createArrayWithRndValues(arrayLength, maxIntInArr, shareOfIdenticalElements);
                             break;
-                        /*case AllElementsIdentical:
-                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr, 1);
-                            break;*/
                     }
 
                     if (arrayToSort != null){
                         SortAlgorithmAndRuntime[] sortAlgorithmRuntimes =
-                                getRuntimesOfAlgorithm(arrayToSort, maxIntinArr, listOfAvailableSortAlgorithms);
+                                getRuntimesOfAlgorithm(arrayToSort, maxIntInArr, listOfAvailableSortAlgorithms);
                         ArrayAndSortAlgorithmsWithRuntime arrayAndSortAlgorithmsWithRuntime =
                                 new ArrayAndSortAlgorithmsWithRuntime(arraySpecification, arrayToSort, sortAlgorithmRuntimes);
                         System.out.print(arrayAndSortAlgorithmsWithRuntime);
@@ -164,16 +157,16 @@ class SortAlgorithmsComparer {
         }
     }
 
-    private SortAlgorithmAndRuntime[] getRuntimesOfAlgorithm(int[] arrayToSort, int maxIntInArr, SortAlgorithm[] sortAlgos) {
-        var sortAlgorithmAndRuntimes = new SortAlgorithmAndRuntime[sortAlgos.length];
+    private SortAlgorithmAndRuntime[] getRuntimesOfAlgorithm(int[] arrayToSort, int maxIntInArr, SortAlgorithm[] sortAlgorithms) {
+        var sortAlgorithmAndRuntimes = new SortAlgorithmAndRuntime[sortAlgorithms.length];
 
-        for (int i = 0; i < sortAlgos.length; i++) {
-            String algoName = sortAlgos[i].getClass().getSimpleName();
+        for (int i = 0; i < sortAlgorithms.length; i++) {
+            String algoName = sortAlgorithms[i].getClass().getSimpleName();
             var array = arrayToSort.clone();
             var startTime = System.nanoTime();
 
-            sortAlgos[i].sort(array, maxIntInArr);
-            long time = System.nanoTime() - startTime;
+            sortAlgorithms[i].sort(array, maxIntInArr);
+            double time = (System.nanoTime() - startTime)/1000.0;
 
             sortAlgorithmAndRuntimes[i] = new SortAlgorithmAndRuntime(algoName, time);
         }
@@ -184,9 +177,9 @@ class SortAlgorithmsComparer {
 
 class SortAlgorithmAndRuntime {
     public String algorithmName;
-    public long time;
+    public double time;
 
-    public SortAlgorithmAndRuntime(String algorithmName, long time){
+    public SortAlgorithmAndRuntime(String algorithmName, double time){
         this.algorithmName = algorithmName;
         this.time = time;
     }
@@ -233,7 +226,7 @@ class ArraySpecification {
     @Override
     public String toString(){
         String proportion = orderAndUniqueness == OrderAndUniqueness.Random_SomeElementsIdentical
-                ? String.format(": %.2f", relativeProportionOfIdenticalElements)
+                ? ": " + relativeProportionOfIdenticalElements
                 : "";
         return String.format("%d;%d;%s", length, maxInt, orderAndUniqueness + proportion);
     }
@@ -273,7 +266,7 @@ class MergeSort implements SortAlgorithm {
 
     // Main function that sorts arr[l..r] using
     // merge()
-    public static void mergeSort(int arr[], int l, int r) {
+    public static void mergeSort(int[] arr, int l, int r) {
         if (l < r) {
             // Find the middle point
             int m = l + (r - l) / 2;
@@ -290,18 +283,17 @@ class MergeSort implements SortAlgorithm {
     // Merges two subarrays of arr[].
     // First subarray is arr[l..m]
     // Second subarray is arr[m+1..r]
-    private static void merge(int arr[], int l, int m, int r) {
+    private static void merge(int[] arr, int l, int m, int r) {
         // Find sizes of two subarrays to be merged
         int n1 = m - l + 1;
         int n2 = r - m;
 
         /* Create temp arrays */
-        int L[] = new int[n1];
-        int R[] = new int[n2];
+        int[] L = new int[n1];
+        int[] R = new int[n2];
 
         /* Copy data to temp arrays */
-        for (int i = 0; i < n1; ++i)
-            L[i] = arr[l + i];
+        System.arraycopy(arr, l, L, 0, n1);
         for (int j = 0; j < n2; ++j)
             R[j] = arr[m + 1 + j];
 
@@ -341,7 +333,7 @@ class MergeSort implements SortAlgorithm {
 
 class RandomizedQuickSort implements SortAlgorithm {
 
-    private static Random random = new Random();
+    private static final Random random = new Random();
 
     @Override
     public void sort(int[] arr, int maxNumberInArr) {
@@ -375,10 +367,10 @@ class RandomizedQuickSort implements SortAlgorithm {
 class CountingSort implements SortAlgorithm {
     @Override
     public void sort(int[] arr, int maxNumberInArr) {
-        int max = maxNumberInArr;
-        int range = max + 1;
+        int range = maxNumberInArr + 1;
         int[] count = new int[range];
         int[] output = new int[arr.length];
+        //noinspection ForLoopReplaceableByForEach
         for (int i = 0; i < arr.length; i++) {
             count[arr[i]]++;
         }
@@ -422,7 +414,7 @@ class HeapSort implements SortAlgorithm {
 
     // To heapify a subtree rooted with node i which is
     // an index in arr[]. n is size of heap
-    public void heapify(int arr[], int n, int i)
+    public void heapify(int[] arr, int n, int i)
     {
         int largest = i; // Initialize largest as root
         int l = 2 * i + 1; // left = 2*i + 1
