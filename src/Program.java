@@ -1,11 +1,14 @@
-import jdk.jshell.spi.ExecutionControl;
-
 import java.util.*;
 
 class Program {
     public static void main(String[] args) {
         var temp = new SortAlgorithmsComparer();
-        temp.compareAllAvailableSortAlgorithms(100, 100);
+        temp.compareAllAvailableSortAlgorithms(
+                new int[]{10, 1000, 100000},
+                new int[]{10, 100000},
+                OrderAndUniqueness.values(),
+                0.1
+        );
     }
 }
 
@@ -65,27 +68,29 @@ class ArrayInputCreator {
         }
     }
 
-    public static int[] createArraySortedAscending(int arrLength)
+    public static int[] createArraySortedAscending(int arrLength, int maxIntinArr)
     {
+        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = i;
+            array[i] = (int) (i * maxInt / array.length);
         }
         return array;
     }
 
-    public static int[] createArraySortedDescending(int arrLength)
+    public static int[] createArraySortedDescending(int arrLength, int maxIntinArr)
     {
+        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = array.length - 1 - i;
+            array[i] = (int)((array.length - 1 - i) * maxInt / array.length);
         }
         return array;
     }
 
-    public static int[] createArraySortedExceptOneSwap(int arrLength)
+    public static int[] createArraySortedExceptOneSwap(int arrLength, int maxIntinArr)
     {
-        int[] sortedArray = createArraySortedAscending(arrLength);
+        int[] sortedArray = createArraySortedAscending(arrLength, maxIntinArr);
         int pos1 = rnd.nextInt(arrLength);
         int pos2;
         do {
@@ -116,58 +121,137 @@ class SortAlgorithmFactory {
 }
 
 class SortAlgorithmsComparer {
-    public void compareAllAvailableSortAlgorithms(int lengthOfArray, int numberOfRuns){
+    public void compareAllAvailableSortAlgorithms(
+            int[] arrayLengths,
+            int[] maxIntsInArr,
+            OrderAndUniqueness[] orderAndUniquenesses,
+            double shareOfIdenticalElements){
         SortAlgorithmFactory sortAlgorithmFactory = new SortAlgorithmFactory();
         SortAlgorithm[] listOfAvailableSortAlgorithms = sortAlgorithmFactory.getAllSortAlgorithms();
-        ArrayList<SortAlgorithmAndRuntime> listOfSortAlgorithmsWithRuntime = new ArrayList<>();
-        //hier könnte auch ein Array von Int-Arrays(int[]) erstellt werden, sodass beim Sortieren immer die gleichen verwendet werden
-        for(var sortAlgo : listOfAvailableSortAlgorithms){
-            long[] runtimesOfAlgorithm = getRuntimesOfAlgorithm(lengthOfArray, sortAlgo, numberOfRuns);
-            long maxTime = Arrays.stream(runtimesOfAlgorithm).max().getAsLong();
-            long minTime = Arrays.stream(runtimesOfAlgorithm).min().getAsLong();
-            double avgTime = Arrays.stream(runtimesOfAlgorithm).average().getAsDouble();
-            SortAlgorithmAndRuntime sortAlgorithmAndRuntime =
-                    new SortAlgorithmAndRuntime(sortAlgo.getClass().getSimpleName(), maxTime, minTime, avgTime);
-            listOfSortAlgorithmsWithRuntime.add(sortAlgorithmAndRuntime);
-        }
 
-        printResultsOfSortAlgorithms(listOfSortAlgorithmsWithRuntime);
+        for (int arrayLength : arrayLengths) {
+            for (int maxIntinArr : maxIntsInArr) {
+                for (var orderAndUniqueness : orderAndUniquenesses) {
+                    ArraySpecification arraySpecification = new ArraySpecification(arrayLength, maxIntinArr, orderAndUniqueness, shareOfIdenticalElements);
+                    int[] arrayToSort = null;
+                    switch (orderAndUniqueness){
+                        case SortedAscending:
+                            if (maxIntinArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedAscending(arrayLength, maxIntinArr);
+                            break;
+                        case SortedDescending:
+                            if (maxIntinArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedDescending(arrayLength, maxIntinArr);
+                            break;
+                        case AscendingOneRandomSwap:
+                            if (maxIntinArr <= arrayLength)
+                                arrayToSort = ArrayInputCreator.createArraySortedExceptOneSwap(arrayLength, maxIntinArr);
+                            break;
+                        case Random:
+                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr);
+                            break;
+                        case Random_SomeElementsIdentical:
+                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr, shareOfIdenticalElements);
+                            break;
+                        /*case AllElementsIdentical:
+                            arrayToSort = ArrayInputCreator.createArrayWithRndVals(arrayLength, maxIntinArr, 1);
+                            break;*/
+                    }
+
+                    if (arrayToSort != null){
+                        SortAlgorithmAndRuntime[] sortAlgorithmRuntimes =
+                                getRuntimesOfAlgorithm(arrayToSort, maxIntinArr, listOfAvailableSortAlgorithms);
+                        ArrayAndSortAlgorithmsWithRuntime arrayAndSortAlgorithmsWithRuntime =
+                                new ArrayAndSortAlgorithmsWithRuntime(arraySpecification, arrayToSort, sortAlgorithmRuntimes);
+                        System.out.print(arrayAndSortAlgorithmsWithRuntime);
+                    }
+                }
+            }
+        }
     }
 
-    private void printResultsOfSortAlgorithms(ArrayList<SortAlgorithmAndRuntime> listOfSortAlgorithmsWithRuntime) {
-        for (var sortAlgorithmWithRuntime : listOfSortAlgorithmsWithRuntime){
-            System.out.println(sortAlgorithmWithRuntime.name);
-            System.out.println("Min Time: " + sortAlgorithmWithRuntime.shortestTime + "ns");
-            System.out.println("Max Time: " + sortAlgorithmWithRuntime.longestTime + "ns");
-            System.out.println("Avg Time: " + sortAlgorithmWithRuntime.avgTime + "ns\n");
-        }
-    }
+    private SortAlgorithmAndRuntime[] getRuntimesOfAlgorithm(int[] arrayToSort, int maxIntInArr, SortAlgorithm[] sortAlgos) {
+        var sortAlgorithmAndRuntimes = new SortAlgorithmAndRuntime[sortAlgos.length];
 
-    private long[] getRuntimesOfAlgorithm(int lengthOfArray, SortAlgorithm sortAlgo, int numberOfRuns) {
-        long[] runtimesOfAlgorithm = new long[numberOfRuns];
-        for (int i = 0; i < numberOfRuns; i++) {
-            var rndArray = ArrayInputCreator.createArrayWithRndVals(lengthOfArray, lengthOfArray);
-            var maxIntInArr = Arrays.stream(rndArray).max().getAsInt();
+        for (int i = 0; i < sortAlgos.length; i++) {
+            String algoName = sortAlgos[i].getClass().getSimpleName();
+            var array = arrayToSort.clone();
             var sw = new Stopwatch(true);
-            sortAlgo.sort(rndArray, maxIntInArr);
-            runtimesOfAlgorithm[i] = sw.getElapsedTimeNano();
+
+            sortAlgos[i].sort(array, maxIntInArr);
+            long time = sw.getElapsedTimeNano();
+
+            sortAlgorithmAndRuntimes[i] = new SortAlgorithmAndRuntime(algoName, time);
         }
-        return runtimesOfAlgorithm;
+
+        return sortAlgorithmAndRuntimes;
     }
 }
 
 class SortAlgorithmAndRuntime {
-    public String name;
-    public long longestTime;
-    public long shortestTime;
-    public double avgTime;
+    public String algorithmName;
+    public long time;
 
-    public SortAlgorithmAndRuntime(String name, long longestTime, long shortestTime, double avgTime){
-        this.name = name;
-        this.longestTime = longestTime;
-        this.shortestTime = shortestTime;
-        this.avgTime = avgTime;
+    public SortAlgorithmAndRuntime(String algorithmName, long time){
+        this.algorithmName = algorithmName;
+        this.time = time;
     }
+
+    @Override
+    public String toString(){
+        return String.format("%s;%d", algorithmName, time);
+    }
+}
+
+class ArrayAndSortAlgorithmsWithRuntime{
+    public ArraySpecification arraySpecs;
+    public int[] array;
+    public SortAlgorithmAndRuntime[] sortAlgorithmAndRuntimes;
+
+    public ArrayAndSortAlgorithmsWithRuntime(ArraySpecification arraySpecs, int[] array, SortAlgorithmAndRuntime[] sortAlgorithmAndRuntimes) {
+        this.arraySpecs = arraySpecs;
+        this.array = array;
+        this.sortAlgorithmAndRuntimes = sortAlgorithmAndRuntimes;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (var data : sortAlgorithmAndRuntimes){
+            stringBuilder.append(String.format("%s;%s\n", arraySpecs, data));
+        }
+        return stringBuilder.toString();
+    }
+}
+
+class ArraySpecification {
+    int length, maxInt;
+    OrderAndUniqueness orderAndUniqueness;
+    double relativeProportionOfIdenticalElements;
+
+    public ArraySpecification(int length, int maxInt, OrderAndUniqueness orderAndUniqueness, double relativeProportionOfIdenticalElements) {
+        this.length = length;
+        this.maxInt = maxInt;
+        this.orderAndUniqueness = orderAndUniqueness;
+        this.relativeProportionOfIdenticalElements = relativeProportionOfIdenticalElements;
+    }
+
+    @Override
+    public String toString(){
+        String proportion = orderAndUniqueness == OrderAndUniqueness.Random_SomeElementsIdentical
+                ? String.format(": %.2f", relativeProportionOfIdenticalElements)
+                : "";
+        return String.format("%d;%d;%s", length, maxInt, orderAndUniqueness + proportion);
+    }
+}
+
+enum OrderAndUniqueness {
+    SortedAscending,
+    SortedDescending,
+    AscendingOneRandomSwap,
+    Random,
+    Random_SomeElementsIdentical,
+    AllElementsIdentical
 }
 
 class Stopwatch {
@@ -328,6 +412,8 @@ class RandomizedQuickSort implements SortAlgorithm {
         int rndIndexOfPivot = rnd.nextInt(l, r + 1);
 
         int pivot = arr[rndIndexOfPivot];
+        arr[rndIndexOfPivot] = arr[r];
+        arr[r] = pivot;
 
         // Index of smaller element and
         // indicates the right position
