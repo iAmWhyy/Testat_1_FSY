@@ -64,7 +64,7 @@ class ArrayInputCreator {
         for (int i = ar.length - 1; i > 0; i--)
         {
             int index = rnd.nextInt(i + 1);
-            swap(ar, index, i);
+            Swapper.swap(ar, index, i);
         }
     }
 
@@ -96,14 +96,8 @@ class ArrayInputCreator {
         do {
             pos2 = rnd.nextInt(arrLength);
         }while (pos1 == pos2);
-        swap(sortedArray, pos1, pos2);
+        Swapper.swap(sortedArray, pos1, pos2);
         return sortedArray;
-    }
-
-    private static void swap(int[] arr, int i, int j) {
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
     }
 }
 
@@ -296,6 +290,16 @@ class Stopwatch {
     }
 }
 
+class Swapper{
+    private Swapper(){}
+
+    public static void swap(int[] arr, int i, int j) {
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
 //region SortAlgorithms
 class MergeSort implements SortAlgorithm {
 
@@ -379,64 +383,33 @@ class MergeSort implements SortAlgorithm {
 
 class RandomizedQuickSort implements SortAlgorithm {
 
-    private static Random rnd = new Random();
+    private static Random random = new Random();
 
     @Override
     public void sort(int[] arr, int maxNumberInArr) {
         randomizedQuickSort(arr, 0, arr.length - 1);
     }
 
-    /*
-     * The main function that implements QuickSort arr[] --> Array to be sorted, low
-     * --> Starting index, high --> Ending index
-     */
-    public static void randomizedQuickSort(int[] arr, int l, int r) {
-        if (l < r) {
-            // pivot is partitioning index, arr[p]
-            // is now at right place
-            int pivot = randomizedPartition(arr, l, r);
-
-            // Separately sort elements before
-            // partition and after partition
-            randomizedQuickSort(arr, l, pivot - 1);
-            randomizedQuickSort(arr, pivot + 1, r);
-        }
-    }
-
-    /*
-     * This function takes last element as pivot, places the pivot element at its
-     * correct position in sorted array, and places all smaller/equal (smaller or
-     * equal than pivot) to left of pivot and all greater elements to right of pivot
-     */
-    private static int randomizedPartition(int[] arr, int l, int r) {
-        int rndIndexOfPivot = rnd.nextInt(l, r + 1);
-
-        int pivot = arr[rndIndexOfPivot];
-        arr[rndIndexOfPivot] = arr[r];
-        arr[r] = pivot;
-
-        // Index of smaller element and
-        // indicates the right position
-        // of pivot found so far
-        int i = l - 1;
-        for (int j = l; j <= r - 1; j++) {
-            // If current element is smaller
-            // or equal than the pivot
-            if (arr[j] <= pivot) {
-                // Increment index of
-                // smaller element
+    static int randomizedPartition(int[] A, int p, int r){
+        int i = random.nextInt(p, r);
+        Swapper.swap(A, i, r);
+        int pivot = A[r];
+        i = p;
+        for (int j = p; j < r; j++)
+            if (A[j] <= pivot){
+                Swapper.swap(A, i, j);
                 i++;
-                swap(arr, i, j);
             }
-        }
-        swap(arr, i + 1, r);
-        return i + 1;
+        Swapper.swap(A, i, r);
+        return i;
     }
 
-    private static void swap(int[] arr, int i, int j) {
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+    static void randomizedQuickSort(int[] A, int p, int r){
+        if (p < r){
+            int q = randomizedPartition(A, p, r);
+            randomizedQuickSort(A, p, q-1);
+            randomizedQuickSort(A, q+1, r);
+        }
     }
 
 }
@@ -472,7 +445,7 @@ class HeapSort implements SortAlgorithm {
 
         for (int swapToPos = arr.length - 1; swapToPos > 0; swapToPos--) {
             // Move root to end
-            swap(arr, 0, swapToPos);
+            Swapper.swap(arr, 0, swapToPos);
 
             // Fix remaining heap
             heapify(arr, swapToPos, 0);
@@ -507,17 +480,11 @@ class HeapSort implements SortAlgorithm {
 
         // If largest is not root
         if (largest != i) {
-            swap(arr, i, largest);
+            Swapper.swap(arr, i, largest);
 
             // Recursively heapify the affected sub-tree
             heapify(arr, n, largest);
         }
-    }
-
-    private static void swap(int[] arr, int i, int j) {
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
     }
 }
 //endregion
