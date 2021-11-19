@@ -2,13 +2,18 @@ import java.util.*;
 
 class Program {
     public static void main(String[] args) {
-        var temp = new SortAlgorithmsComparer();
-        temp.compareAllAvailableSortAlgorithms(
-                new int[]{10, 1000, 100000},
-                new int[]{10, 100000},
-                OrderAndUniqueness.values(),
-                0.1
-        );
+//        var temp = new SortAlgorithmsComparer();
+//        temp.compareAllAvailableSortAlgorithms(
+//                new int[]{10, 1000, 99000},
+//                new int[]{10, 100000},
+//                OrderAndUniqueness.values(),
+//                0.1
+//        );
+        int maxNumber = 100000;
+        var arrForSorting = ArrayInputCreator.createArrayWithRndVals(100000, maxNumber);
+        var ct = new CountingSort();
+        ct.sort(arrForSorting, maxNumber);
+        System.out.println(Arrays.toString(arrForSorting));
     }
 }
 
