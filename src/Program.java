@@ -2,18 +2,13 @@ import java.util.*;
 
 class Program {
     public static void main(String[] args) {
-//        var temp = new SortAlgorithmsComparer();
-//        temp.compareAllAvailableSortAlgorithms(
-//                new int[]{10, 1000, 99000},
-//                new int[]{10, 100000},
-//                OrderAndUniqueness.values(),
-//                0.1
-//        );
-        int maxNumber = 100000;
-        var arrForSorting = ArrayInputCreator.createArrayWithRndVals(100000, maxNumber);
-        var ct = new CountingSort();
-        ct.sort(arrForSorting, maxNumber);
-        System.out.println(Arrays.toString(arrForSorting));
+        var temp = new SortAlgorithmsComparer();
+        temp.compareAllAvailableSortAlgorithms(
+                new int[]{10, 1000, 100000},
+                new int[]{10, 100000},
+                OrderAndUniqueness.values(),
+                0.1
+        );
     }
 }
 
@@ -75,18 +70,20 @@ class ArrayInputCreator {
 
     public static int[] createArraySortedAscending(int arrLength, int maxIntinArr)
     {
+        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = i * maxIntinArr / array.length;
+            array[i] = (int) (i * maxInt / array.length);
         }
         return array;
     }
 
     public static int[] createArraySortedDescending(int arrLength, int maxIntinArr)
     {
+        long maxInt = maxIntinArr;
         int[] array = new int[arrLength];
         for (int i = 0; i < array.length; i++) {
-            array[i] = (array.length - 1 - i) * maxIntinArr / array.length;
+            array[i] = (int)((array.length - 1 - i) * maxInt / array.length);
         }
         return array;
     }
@@ -202,7 +199,7 @@ class SortAlgorithmAndRuntime {
 
     @Override
     public String toString(){
-        return String.format("%s,%d", algorithmName, time);
+        return String.format("%s;%d", algorithmName, time);
     }
 }
 
@@ -221,7 +218,7 @@ class ArrayAndSortAlgorithmsWithRuntime{
     public String toString(){
         StringBuilder stringBuilder = new StringBuilder();
         for (var data : sortAlgorithmAndRuntimes){
-            stringBuilder.append(String.format("%s,%s\n", arraySpecs, data));
+            stringBuilder.append(String.format("%s;%s\n", arraySpecs, data));
         }
         return stringBuilder.toString();
     }
@@ -242,9 +239,9 @@ class ArraySpecification {
     @Override
     public String toString(){
         String proportion = orderAndUniqueness == OrderAndUniqueness.Random_SomeElementsIdentical
-                ? String.format(":%.2f", relativeProportionOfIdenticalElements)
+                ? String.format(": %.2f", relativeProportionOfIdenticalElements)
                 : "";
-        return String.format("%d,%d,%s", length, maxInt, orderAndUniqueness + proportion);
+        return String.format("%d;%d;%s", length, maxInt, orderAndUniqueness + proportion);
     }
 }
 
