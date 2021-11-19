@@ -170,10 +170,10 @@ class SortAlgorithmsComparer {
         for (int i = 0; i < sortAlgos.length; i++) {
             String algoName = sortAlgos[i].getClass().getSimpleName();
             var array = arrayToSort.clone();
-            var sw = new Stopwatch(true);
+            var startTime = System.nanoTime();
 
             sortAlgos[i].sort(array, maxIntInArr);
-            long time = sw.getElapsedTimeNano();
+            long time = System.nanoTime() - startTime;
 
             sortAlgorithmAndRuntimes[i] = new SortAlgorithmAndRuntime(algoName, time);
         }
@@ -193,7 +193,7 @@ class SortAlgorithmAndRuntime {
 
     @Override
     public String toString(){
-        return String.format("%s;%d", algorithmName, time);
+        return algorithmName + ";" + time;
     }
 }
 
@@ -246,48 +246,6 @@ enum OrderAndUniqueness {
     Random,
     Random_SomeElementsIdentical,
     AllElementsIdentical
-}
-
-class Stopwatch {
-    private long startTime, stopTime;
-    private boolean isRunning;
-
-    public Stopwatch() {}
-
-    public Stopwatch(boolean instantStart) {
-        if (instantStart) {
-            start();
-        }
-    }
-
-    public void start() {
-        startTime = System.nanoTime();
-        isRunning = true;
-    }
-
-    public void stop() {
-        stopTime = System.nanoTime();
-        isRunning = false;
-    }
-
-    public long getElapsedTimeNano() {
-        long elapsed;
-        if (isRunning) {
-            elapsed = System.nanoTime() - startTime;
-        }
-        else{
-            elapsed = stopTime - startTime;
-        }
-        return elapsed;
-    }
-
-    public long getElapsedTimeMilli() {
-        return getElapsedTimeNano() / 1000000;
-    }
-
-    public long getElapsedTimeSec() {
-        return getElapsedTimeMilli() / 1000;
-    }
 }
 
 class Swapper{
