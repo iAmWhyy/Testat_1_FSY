@@ -1,3 +1,4 @@
+import java.text.DecimalFormat;
 import java.util.*;
 
 class Program {
@@ -178,6 +179,7 @@ class SortAlgorithmsComparator {
 class SortAlgorithmAndRuntime {
     public String algorithmName;
     public double time;
+    private static final DecimalFormat df = new DecimalFormat("0.0");
 
     public SortAlgorithmAndRuntime(String algorithmName, double time){
         this.algorithmName = algorithmName;
@@ -186,7 +188,7 @@ class SortAlgorithmAndRuntime {
 
     @Override
     public String toString(){
-        return algorithmName + ";" + time;
+        return algorithmName + ";" + df.format(time).replace(',', '.');
     }
 }
 
